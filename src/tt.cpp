@@ -36,18 +36,18 @@ TranspositionTable TT; // Our global transposition table
 void TTEntry::save(Key k, Value v, bool pv, Bound b, Depth d, Move m, Value ev) {
 
   // Preserve any existing move for the same position
-  if (m || (uint16_t)k != key16)
+  if (m || (uint32_t)k != key32)
       move16 = (uint16_t)m;
 
   // Overwrite less valuable entries (cheapest checks first)
   if (b == BOUND_EXACT
-      || (uint16_t)k != key16
+      || (uint32_t)k != key32
       || d - DEPTH_OFFSET > depth8 - 4)
   {
       assert(d > DEPTH_OFFSET);
       assert(d < 256 + DEPTH_OFFSET);
 
-      key16    = (uint16_t)k;
+      key32    = (uint32_t)k;
       depth8   = (uint8_t)(d - DEPTH_OFFSET);
       pvBound8 = (uint8_t)(uint8_t(pv) << 2 | b);
       value16  = (int16_t)v;
@@ -117,7 +117,7 @@ TTEntry* TranspositionTable::probe(const Key key, bool& found) const {
 
   TTEntry* const tte = get_entry(key);
 
-  if (tte->key16 == (uint16_t)key)
+  if (tte->key32 == (uint32_t)key)
   {
     return found = (bool)tte->depth8, tte;
   }

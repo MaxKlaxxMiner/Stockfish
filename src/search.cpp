@@ -226,7 +226,6 @@ void MainThread::search() {
 
   Color us = rootPos.side_to_move();
   Time.init(Limits, us, rootPos.game_ply());
-  TT.new_search();
 
   Eval::NNUE::verify();
 
@@ -1168,7 +1167,7 @@ moves_loop: // When in check, search starts from here
       newDepth += extension;
 
       // Speculative prefetch as early as possible
-      prefetch(TT.first_entry(pos.key_after(move)));
+      prefetch(TT.get_entry(pos.key_after(move)));
 
       // Update the current move (this must be done after singular extension search)
       ss->currentMove = move;
@@ -1613,7 +1612,7 @@ moves_loop: // When in check, search starts from here
           continue;
 
       // Speculative prefetch as early as possible
-      prefetch(TT.first_entry(pos.key_after(move)));
+      prefetch(TT.get_entry(pos.key_after(move)));
 
       // Check for legality just before making the move
       if (!pos.legal(move))

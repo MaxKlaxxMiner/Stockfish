@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <ProjectGuid>{236E0295-D406-4BDC-94DF-4A82ABAB3EF8}</ProjectGuid>
+    <Keyword>MakeFileProj</Keyword>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <NMakePreprocessorDefinitions>WIN32;_DEBUG;NDEBUG;USE_POPCNT;USE_SSE41;USE_SSSE3;USE_SSE2;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <NMakePreprocessorDefinitions>WIN32;NDEBUG;NDEBUG;USE_POPCNT;USE_SSE41;USE_SSSE3;USE_SSE2;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <PreprocessorDefinitions>NDEBUG;USE_POPCNT;USE_SSE41;USE_SSSE3;USE_SSE2</PreprocessorDefinitions>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <PreprocessorDefinitions>NDEBUG;USE_POPCNT;USE_SSE41;USE_SSSE3;USE_SSE2</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="src\benchmark.cpp" />
+    <ClCompile Include="src\bitbase.cpp" />
+    <ClCompile Include="src\bitboard.cpp" />
+    <ClCompile Include="src\endgame.cpp" />
+    <ClCompile Include="src\evaluate.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\material.cpp" />
+    <ClCompile Include="src\misc.cpp" />
+    <ClCompile Include="src\movegen.cpp" />
+    <ClCompile Include="src\movepick.cpp" />
+    <ClCompile Include="src\nnue\evaluate_nnue.cpp" />
+    <ClCompile Include="src\nnue\features\half_kp.cpp" />
+    <ClCompile Include="src\pawns.cpp" />
+    <ClCompile Include="src\position.cpp" />
+    <ClCompile Include="src\psqt.cpp" />
+    <ClCompile Include="src\search.cpp" />
+    <ClCompile Include="src\syzygy\tbprobe.cpp" />
+    <ClCompile Include="src\thread.cpp" />
+    <ClCompile Include="src\timeman.cpp" />
+    <ClCompile Include="src\tt.cpp" />
+    <ClCompile Include="src\tune.cpp" />
+    <ClCompile Include="src\uci.cpp" />
+    <ClCompile Include="src\ucioption.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\bitboard.h" />
+    <ClInclude Include="src\endgame.h" />
+    <ClInclude Include="src\evaluate.h" />
+    <ClInclude Include="src\incbin\incbin.h" />
+    <ClInclude Include="src\material.h" />
+    <ClInclude Include="src\misc.h" />
+    <ClInclude Include="src\movegen.h" />
+    <ClInclude Include="src\movepick.h" />
+    <ClInclude Include="src\nnue\architectures\halfkp_256x2-32-32.h" />
+    <ClInclude Include="src\nnue\evaluate_nnue.h" />
+    <ClInclude Include="src\nnue\features\features_common.h" />
+    <ClInclude Include="src\nnue\features\feature_set.h" />
+    <ClInclude Include="src\nnue\features\half_kp.h" />
+    <ClInclude Include="src\nnue\features\index_list.h" />
+    <ClInclude Include="src\nnue\layers\affine_transform.h" />
+    <ClInclude Include="src\nnue\layers\clipped_relu.h" />
+    <ClInclude Include="src\nnue\layers\input_slice.h" />
+    <ClInclude Include="src\nnue\nnue_accumulator.h" />
+    <ClInclude Include="src\nnue\nnue_architecture.h" />
+    <ClInclude Include="src\nnue\nnue_common.h" />
+    <ClInclude Include="src\nnue\nnue_feature_transformer.h" />
+    <ClInclude Include="src\pawns.h" />
+    <ClInclude Include="src\position.h" />
+    <ClInclude Include="src\psqt.h" />
+    <ClInclude Include="src\search.h" />
+    <ClInclude Include="src\syzygy\tbprobe.h" />
+    <ClInclude Include="src\thread.h" />
+    <ClInclude Include="src\thread_win32_osx.h" />
+    <ClInclude Include="src\timeman.h" />
+    <ClInclude Include="src\tt.h" />
+    <ClInclude Include="src\tune.h" />
+    <ClInclude Include="src\types.h" />
+    <ClInclude Include="src\uci.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

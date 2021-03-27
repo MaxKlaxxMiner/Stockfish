@@ -350,99 +350,89 @@ void Thread::search() {
       for (RootMove& rm : rootMoves)
           rm.previousScore = rm.score;
 
-      size_t pvFirst = 0;
-      pvLast = 0;
-
       if (!Threads.increaseDepth)
          searchAgainCounter++;
 
-      for (pvIdx = 0; pvIdx < 1 && !Threads.stop; ++pvIdx) //tada
+      for (pvLast = 1; pvLast < rootMoves.size(); pvLast++)
+          if (rootMoves[pvLast].tbRank != rootMoves[0].tbRank)
+              break;
+
+      // Reset UCI info selDepth for each depth and each PV line
+      selDepth = 0;
+
+      // Reset aspiration window starting size
+      if (rootDepth >= 4)
       {
-          if (pvIdx == pvLast)
-          {
-              pvFirst = pvLast;
-              for (pvLast++; pvLast < rootMoves.size(); pvLast++)
-                  if (rootMoves[pvLast].tbRank != rootMoves[pvFirst].tbRank)
-                      break;
-          }
+          Value prev = rootMoves[0].previousScore;
+          delta = Value(17);
+          alpha = std::max(prev - delta,-VALUE_INFINITE);
+          beta  = std::min(prev + delta, VALUE_INFINITE);
 
-          // Reset UCI info selDepth for each depth and each PV line
-          selDepth = 0;
+          // Adjust contempt based on root move's previousScore (dynamic contempt)
+          int dct = ct + (113 - ct / 2) * prev / (abs(prev) + 147);
 
-          // Reset aspiration window starting size
-          if (rootDepth >= 4)
-          {
-              Value prev = rootMoves[pvIdx].previousScore;
-              delta = Value(17);
-              alpha = std::max(prev - delta,-VALUE_INFINITE);
-              beta  = std::min(prev + delta, VALUE_INFINITE);
-
-              // Adjust contempt based on root move's previousScore (dynamic contempt)
-              int dct = ct + (113 - ct / 2) * prev / (abs(prev) + 147);
-
-              contempt = (us == WHITE ?  make_score(dct, dct / 2)
-                                      : -make_score(dct, dct / 2));
-          }
-
-          // Start with a small aspiration window and, in the case of a fail
-          // high/low, re-search with a bigger window until we don't fail
-          // high/low anymore.
-          failedHighCnt = 0;
-          while (true)
-          {
-              Depth adjustedDepth = std::max(1, rootDepth - failedHighCnt - searchAgainCounter);
-              bestValue = Stockfish::search<PV>(rootPos, ss, alpha, beta, adjustedDepth, false);
-
-              // Bring the best move to the front. It is critical that sorting
-              // is done with a stable algorithm because all the values but the
-              // first and eventually the new best one are set to -VALUE_INFINITE
-              // and we want to keep the same order for all the moves except the
-              // new PV that goes to the front.
-              std::stable_sort(rootMoves.begin() + pvIdx, rootMoves.begin() + pvLast);
-
-              // If search has been stopped, we break immediately. Sorting is
-              // safe because RootMoves is still valid, although it refers to
-              // the previous iteration.
-              if (Threads.stop)
-                  break;
-
-              // When failing high/low give some update (without cluttering
-              // the UI) before a re-search.
-              if (   mainThread
-                  && (bestValue <= alpha || bestValue >= beta)
-                  && Time.elapsed() > 3000)
-                  sync_cout << UCI::pv(rootPos, rootDepth, alpha, beta) << sync_endl;
-
-              // In case of failing low/high increase aspiration window and
-              // re-search, otherwise exit the loop.
-              if (bestValue <= alpha)
-              {
-                  beta = (alpha + beta) / 2;
-                  alpha = std::max(bestValue - delta, -VALUE_INFINITE);
-
-                  failedHighCnt = 0;
-                  if (mainThread)
-                      mainThread->stopOnPonderhit = false;
-              }
-              else if (bestValue >= beta)
-              {
-                  beta = std::min(bestValue + delta, VALUE_INFINITE);
-                  ++failedHighCnt;
-              }
-              else
-                  break;
-
-              delta += delta / 4 + 5;
-
-              assert(alpha >= -VALUE_INFINITE && beta <= VALUE_INFINITE);
-          }
-
-          // Sort the PV lines searched so far and update the GUI
-          std::stable_sort(rootMoves.begin() + pvFirst, rootMoves.begin() + pvIdx + 1);
-
-          if (mainThread)
-              sync_cout << UCI::pv(rootPos, rootDepth, alpha, beta) << sync_endl;
+          contempt = (us == WHITE ?  make_score(dct, dct / 2)
+                                  : -make_score(dct, dct / 2));
       }
+
+      // Start with a small aspiration window and, in the case of a fail
+      // high/low, re-search with a bigger window until we don't fail
+      // high/low anymore.
+      failedHighCnt = 0;
+      while (true)
+      {
+          Depth adjustedDepth = std::max(1, rootDepth - failedHighCnt - searchAgainCounter);
+          bestValue = Stockfish::search<PV>(rootPos, ss, alpha, beta, adjustedDepth, false);
+
+          // Bring the best move to the front. It is critical that sorting
+          // is done with a stable algorithm because all the values but the
+          // first and eventually the new best one are set to -VALUE_INFINITE
+          // and we want to keep the same order for all the moves except the
+          // new PV that goes to the front.
+          std::stable_sort(rootMoves.begin(), rootMoves.begin() + pvLast);
+
+          // If search has been stopped, we break immediately. Sorting is
+          // safe because RootMoves is still valid, although it refers to
+          // the previous iteration.
+          if (Threads.stop)
+              break;
+
+          // When failing high/low give some update (without cluttering
+          // the UI) before a re-search.
+          if (   mainThread
+              && (bestValue <= alpha || bestValue >= beta)
+              && Time.elapsed() > 3000)
+              sync_cout << UCI::pv(rootPos, rootDepth, alpha, beta) << sync_endl;
+
+          // In case of failing low/high increase aspiration window and
+          // re-search, otherwise exit the loop.
+          if (bestValue <= alpha)
+          {
+              beta = (alpha + beta) / 2;
+              alpha = std::max(bestValue - delta, -VALUE_INFINITE);
+
+              failedHighCnt = 0;
+              if (mainThread)
+                  mainThread->stopOnPonderhit = false;
+          }
+          else if (bestValue >= beta)
+          {
+              beta = std::min(bestValue + delta, VALUE_INFINITE);
+              ++failedHighCnt;
+          }
+          else
+              break;
+
+          delta += delta / 4 + 5;
+
+          assert(alpha >= -VALUE_INFINITE && beta <= VALUE_INFINITE);
+      }
+
+      // Sort the PV lines searched so far and update the GUI
+      std::stable_sort(rootMoves.begin(), rootMoves.begin() + 1);
+
+      if (mainThread)
+          sync_cout << UCI::pv(rootPos, rootDepth, alpha, beta) << sync_endl;
 
       if (!Threads.stop)
           completedDepth = rootDepth;
@@ -626,7 +616,7 @@ namespace {
     posKey = excludedMove == MOVE_NONE ? pos.key() : pos.key() ^ make_key(excludedMove);
     tte = TT.probe(posKey, ss->ttHit);
     ttValue = ss->ttHit ? value_from_tt(tte->value(), ss->ply, pos.rule50_count()) : VALUE_NONE;
-    ttMove =  rootNode ? thisThread->rootMoves[thisThread->pvIdx].pv[0]
+    ttMove =  rootNode ? thisThread->rootMoves[0].pv[0]
             : ss->ttHit    ? tte->move() : MOVE_NONE;
 
     // thisThread->ttHitAverage can be used to approximate the running average of ttHit
@@ -961,7 +951,7 @@ moves_loop: // When in check, search starts from here
 
       // At root obey the "searchmoves" option and skip moves not listed in Root
       // Move List. As a consequence any illegal move is also skipped.
-      if (rootNode && !std::count(thisThread->rootMoves.begin() + thisThread->pvIdx,
+      if (rootNode && !std::count(thisThread->rootMoves.begin(),
                                   thisThread->rootMoves.begin() + thisThread->pvLast, move))
           continue;
 
@@ -974,7 +964,7 @@ moves_loop: // When in check, search starts from here
       if (rootNode && thisThread == Threads.main() && Time.elapsed() > 3000)
           sync_cout << "info depth " << depth
                     << " currmove " << UCI::move(move, pos.is_chess960())
-                    << " currmovenumber " << moveCount + thisThread->pvIdx << sync_endl;
+                    << " currmovenumber " << moveCount << sync_endl;
       if (PvNode)
           (ss+1)->pv = nullptr;
 
@@ -1363,7 +1353,7 @@ moves_loop: // When in check, search starts from here
         bestValue = std::min(bestValue, maxValue);
 
     // Write gathered information in transposition table
-    if (!excludedMove && !(rootNode && thisThread->pvIdx))
+    if (!excludedMove)
         tte->save(posKey, value_to_tt(bestValue, ss->ply),
                   bestValue >= beta ? BOUND_LOWER :
                   PvNode && bestMove ? BOUND_EXACT : BOUND_UPPER,
@@ -1796,53 +1786,46 @@ string UCI::pv(const Position& pos, Depth depth, Value alpha, Value beta) {
   std::stringstream ss;
   TimePoint elapsed = Time.elapsed() + 1;
   const RootMoves& rootMoves = pos.this_thread()->rootMoves;
-  size_t pvIdx = pos.this_thread()->pvIdx;
   uint64_t nodesSearched = Threads.nodes_searched();
   uint64_t tbHits = Threads.tb_hits() + (TB::RootInTB ? rootMoves.size() : 0);
 
-  for (size_t i = 0; i < 1; ++i) //tada
-  {
-      bool updated = rootMoves[i].score != -VALUE_INFINITE;
+  bool updated = rootMoves[0].score != -VALUE_INFINITE;
 
-      if (depth == 1 && !updated && i > 0)
-          continue;
+  Depth d = updated ? depth : std::max(1, depth - 1);
+  Value v = updated ? rootMoves[0].score : rootMoves[0].previousScore;
 
-      Depth d = updated ? depth : std::max(1, depth - 1);
-      Value v = updated ? rootMoves[i].score : rootMoves[i].previousScore;
+  if (v == -VALUE_INFINITE)
+      v = VALUE_ZERO;
 
-      if (v == -VALUE_INFINITE)
-          v = VALUE_ZERO;
+  bool tb = TB::RootInTB && abs(v) < VALUE_MATE_IN_MAX_PLY;
+  v = tb ? rootMoves[0].tbScore : v;
 
-      bool tb = TB::RootInTB && abs(v) < VALUE_MATE_IN_MAX_PLY;
-      v = tb ? rootMoves[i].tbScore : v;
+  if (ss.rdbuf()->in_avail()) // Not at first line
+      ss << "\n";
 
-      if (ss.rdbuf()->in_avail()) // Not at first line
-          ss << "\n";
+  ss << "info"
+     << " depth "    << d
+     << " seldepth " << rootMoves[0].selDepth
+     << " multipv 1 score "    << UCI::value(v);
 
-      ss << "info"
-         << " depth "    << d
-         << " seldepth " << rootMoves[i].selDepth
-         << " multipv 1 score "    << UCI::value(v);
+  if (Options["UCI_ShowWDL"])
+      ss << UCI::wdl(v, pos.game_ply());
 
-      if (Options["UCI_ShowWDL"])
-          ss << UCI::wdl(v, pos.game_ply());
+  if (!tb)
+      ss << (v >= beta ? " lowerbound" : v <= alpha ? " upperbound" : "");
 
-      if (!tb && i == pvIdx)
-          ss << (v >= beta ? " lowerbound" : v <= alpha ? " upperbound" : "");
+  ss << " nodes "    << nodesSearched
+     << " nps "      << nodesSearched * 1000 / elapsed;
 
-      ss << " nodes "    << nodesSearched
-         << " nps "      << nodesSearched * 1000 / elapsed;
+  if (elapsed > 1000) // Earlier makes little sense
+      ss << " hashfull " << TT.hashfull();
 
-      if (elapsed > 1000) // Earlier makes little sense
-          ss << " hashfull " << TT.hashfull();
+  ss << " tbhits "   << tbHits
+     << " time "     << elapsed
+     << " pv";
 
-      ss << " tbhits "   << tbHits
-         << " time "     << elapsed
-         << " pv";
-
-      for (Move m : rootMoves[i].pv)
-          ss << " " << UCI::move(m, pos.is_chess960());
-  }
+  for (Move m : rootMoves[0].pv)
+      ss << " " << UCI::move(m, pos.is_chess960());
 
   return ss.str();
 }
